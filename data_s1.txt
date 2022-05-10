@@ -1,0 +1,9 @@
+cam 0 0 50
+normal 0 0 -1
+up 0 1 0
+screen 2
+limit 1000
+alpha 30
+width 1024
+height 800
+light 20 0 0
