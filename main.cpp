@@ -1,7 +1,7 @@
 ﻿#ifndef HM5_5
 #define HM5_5
 #include <chrono>
-#include "homework5_7.h"
+#include "header.h"
 //
 const int BYTES_PER_PIXEL = 3; /// red, green,blue колво байтов на пиксель
 const int FILE_HEADER_SIZE = 14;
