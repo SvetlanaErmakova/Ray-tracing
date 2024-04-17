@@ -1,6 +1,6 @@
 #ifndef __FACTORY
 #define __FACTORY
-#include "homework5_7.h"
+#include "header.h"
 
 class Factory
 {
