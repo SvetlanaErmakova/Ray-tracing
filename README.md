@@ -43,3 +43,7 @@ OpenMP.
 2) Заполните файлы data_f1, data_s1
 3) Запустите программу файлом main
 
+## Результат
+<p align="center">
+  <img src="screenshots/result.jpg" alt="result">
+</p>
