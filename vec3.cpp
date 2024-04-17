@@ -1,10 +1,10 @@
-#include "homework5_7.h"
+#include "header.h"
 
-vec3::vec3()//конструктор по умолчанию
+vec3::vec3()//ГЄГ®Г­Г±ГІГ°ГіГЄГІГ®Г° ГЇГ® ГіГ¬Г®Г«Г·Г Г­ГЁГѕ
 {
 	x = 0.0; y = 0.0; z = 0.0;
 }
-vec3::vec3(double x_, double y_, double z_)//конструктор
+vec3::vec3(double x_, double y_, double z_)//ГЄГ®Г­Г±ГІГ°ГіГЄГІГ®Г°
 {
 	x = x_; y = y_; z = z_;
 }
@@ -37,7 +37,7 @@ vec3& vec3::normalize()
 }
 
 
-//операторы
+//Г®ГЇГҐГ°Г ГІГ®Г°Г»
 
 vec3 operator-(const vec3& v1, const vec3& v2)
 {
