@@ -10,14 +10,14 @@ protected:
     vec3 color = { 225,0,0 };
 
 public:
-    shape() = default;//ГЄГ®Г­Г±ГІГ°ГіГЄГІГ®Г° ГЇГ® ГіГ¬Г®Г«Г·Г Г­ГЁГѕ
-    shape(const string& type_, const vec3& color_)//ГЄГ®Г­Г±ГІГ°ГіГЄГІГ®Г°
+    shape() = default;//конструктор по умолчанию
+    shape(const string& type_, const vec3& color_)//конструктор
     {
         type = type_;
         color = color_;
     }
 
-    //ГґГ¶ГЁГЁ
+    //фции
     virtual bool ray_intersect(const vec3& orig, const vec3& dir, double& t0, vec3& hit, vec3& N) = 0;
     vec3 get_col()
     {
@@ -36,30 +36,30 @@ private:
     double radius = 2.0;
 public:
     sphere() = default;
-    sphere(const string& type, const vec3& color, const vec3& center, const double& radius) : shape(type, color)//ГЄГ®Г­Г±ГІГ°ГіГЄГІГ®Г°
+    sphere(const string& type, const vec3& color, const vec3& center, const double& radius) : shape(type, color)//конструктор
     {
         this->center = center;
         this->radius = radius;
     }
 
-    //ГґГ¶ГЁГЁ
+    //фции
     bool ray_intersect(const vec3& orig, const vec3& dir, double& t0, vec3& hit, vec3& N)  override
     {
         bool s = true;
         vec3 L = center - orig;
-        float tca = L * dir;//ГЇГ°Г®ГҐГЄГ¶ГЁГї L Г­Г  dir(Г­Г®Г°Г¬ГЁГ°Г®ГўГ Г­Г­Г»Г©),ГҐГ±Г«ГЁ Г°Г Г§Г­Г®ГЇГ°Г ГўГ«ГҐГ­Г» ГІГ® Г®ГІГ°ГЁГ¶
-        float d2 = L * L - tca * tca;//Г°Г Г±Г±ГІГ®ГїГ­ГЁГҐ Г®ГІ center Г¤Г® Г«ГіГ·Г  dir
-        if (d2 > radius * radius) s = false;//Г­ГҐ ГЇГҐГ°ГҐГ±ГҐГЄГ ГҐГІ ГёГ Г°
-        float thc = sqrtf(radius * radius - d2);//ГЇГ®Г«Г®ГўГЁГ­Г  ГµГ®Г°Г¤Г» Г¬ГҐГ¦Г¤Гі Г¤ГўГіГ¬Гї ГІ ГЇГҐГ°ГҐГ±ГҐГ·ГҐГ­ГЁГї ГёГ Г°Г 
-        t0 = tca - thc;//Г°Г Г±Г±ГІГ®ГїГ­ГЁГҐ ГЇГ® dir Г¤Г® ГЎГ«ГЁГ¦Г­ГҐГ© ГІГ®Г·ГЄГЁ ГЇГҐГ°ГҐГ±ГҐГ·(ГЎГ«ГЁГ¦Г­ГҐГ© Г®ГІ Г­Г Г·Г Г«Г  ГЄГ®Г®Г°Г¤ Г¤Г® ГёГ Г°Г )
-        float t1 = tca + thc;//Г¤Г® Г¤Г Г«ГјГ­ГҐГ©
+        float tca = L * dir;//проекция L на dir(нормированный),если разноправлены то отриц
+        float d2 = L * L - tca * tca;//расстояние от center до луча dir
+        if (d2 > radius * radius) s = false;//не пересекает шар
+        float thc = sqrtf(radius * radius - d2);//половина хорды между двумя т пересечения шара
+        t0 = tca - thc;//расстояние по dir до ближней точки пересеч(ближней от начала коорд до шара)
+        float t1 = tca + thc;//до дальней
 
-        if (t0 < 0) t0 = t1;//Г«ГҐГўГ Гї ГІГ®Г·ГЄГ  Г§Г  Г­Г Г·Г Г«Г®Г¬ ГЄГ®Г®Г°Г¤ГЁГ­Г ГІ
-        if (t0 < 0) s = false;//ГўГҐГ±Гј ГёГ Г° Г± Г¤Г° Г±ГІГ®Г°Г®Г­Г» Г®ГІ Г­Г Г·Г Г«Г  ГЄГ®Г®Г°-ГІ - Г­ГҐ Г± ГІГ®Г© Г·ГІГ® ГЅГЄГ°Г Г­
+        if (t0 < 0) t0 = t1;//левая точка за началом координат
+        if (t0 < 0) s = false;//весь шар с др стороны от начала коор-т - не с той что экран
         //
 
-        hit = orig + dir * t0;//ГІГ®Г·ГЄГ  ГЇГҐГ°ГҐГ±ГҐГ·ГҐГ­ГЁГї Г± ГёГ Г°Г®Г¬
-        N = (hit - get_center()).normalize();//Г­Г®Г°Г¬Г Г«Гј Г­Г Г°ГіГ¦Гі Гў Г¤Г Г­Г­Г®Г© ГІГ®Г·ГЄГҐ ГёГ Г°Г : hit
+        hit = orig + dir * t0;//точка пересечения с шаром
+        N = (hit - get_center()).normalize();//нормаль наружу в данной точке шара: hit
 
         return s;
     }
@@ -81,28 +81,28 @@ private:
 
     int func(const vec3& A, const vec3& B, const vec3& C, const vec3& D, const vec3& orig, const vec3& dir, double& t1, vec3& N)
     {
-        double d = triangle_intersection(orig, dir, A, B, C); //Г°Г Г±Г±ГІГ®ГїГ­ГЁГҐ ГЇГ® Г«ГіГ·Гі Г¤Г® ГЇГҐГ°ГҐГ±ГҐГ· Г± ГІГ°ГҐГіГЈГ®Г«ГјГ­ГЁГЄГ®Г¬ ГЁГ«ГЁ 0
+        double d = triangle_intersection(orig, dir, A, B, C); //расстояние по лучу до пересеч с треугольником или 0
         if (d == 0)
-            d = triangle_intersection(orig, dir, A, C, D);//Г·ГІГ®ГЎГ» Г°Г Г±Г±Г¬-ГІГј ГўГҐГ±Гј ГЇГ°ГїГ¬Г®ГіГЈ
+            d = triangle_intersection(orig, dir, A, C, D);//чтобы рассм-ть весь прямоуг
         if (d <= 0)
             return -1;
-        if (d > t1 && t1 > 0)//ГЅГІГ® Г¤Г Г«ГјГ­ГїГї ГІГ®Г·ГЄГ  ГЇГҐГ°ГҐГ±ГҐГ·
+        if (d > t1 && t1 > 0)//это дальняя точка пересеч
             return -1;
 
         N = cross(B - A, D - A).normalize();
         t1 = d;
 
-        return 0;//Г­Г ГёГ«ГЁ ГІГ®Г·ГЄГі ГЇГҐГ°ГҐГ±ГҐГ· Г«ГіГ·Г  Г± ГЇГ°ГїГ¬Г®ГіГЈГ®Г«ГјГ­ГЁГЄГ®Г¬ ГЈГ°Г Г­ГЁ
+        return 0;//нашли точку пересеч луча с прямоугольником грани
     }
-    double triangle_intersection(const vec3& orig, const vec3 dir, const vec3& v0, const vec3& v1, const vec3& v2)//Г Г«ГЈ Г¬Г®Г«Г«ГҐГ°Г -ГІГ°
+    double triangle_intersection(const vec3& orig, const vec3 dir, const vec3& v0, const vec3& v1, const vec3& v2)//алг моллера-тр
     {
         vec3 e1 = v1 - v0;
         vec3 e2 = v2 - v0;
-        // Г‚Г»Г·ГЁГ±Г«ГҐГ­ГЁГҐ ГўГҐГЄГІГ®Г°Г  Г­Г®Г°Г¬Г Г«ГЁ ГЄ ГЇГ«Г®Г±ГЄГ®Г±ГІГЁ
+        // Вычисление вектора нормали к плоскости
         vec3 pvec = cross(dir, e2);
         double det = e1 * pvec;
 
-        // Г‹ГіГ· ГЇГ Г°Г Г«Г«ГҐГ«ГҐГ­ ГЇГ«Г®Г±ГЄГ®Г±ГІГЁ
+        // Луч параллелен плоскости
         if (det < 1e-8 && det > -1e-8)
         {
             return 0;
@@ -125,17 +125,17 @@ private:
 
 public:
     box() = default;
-    box(const string& type, const vec3& color, const vec3& v_min, const vec3& v_max) : shape(type, color)//ГЄГ®Г­Г±ГІГ°ГіГЄГІГ®Г°
+    box(const string& type, const vec3& color, const vec3& v_min, const vec3& v_max) : shape(type, color)//конструктор
     {
         this->v_min = v_min;
         this->v_max = v_max;
     }
 
-    //ГґГ¶ГЁГЁ
+    //фции
     bool ray_intersect(const vec3& orig, const vec3& dir, double& t0, vec3& hit, vec3& N)  override
     {
         double t1 = -1;
-        //ГЄГ®Г®Г°Г¤ГЁГ­Г ГІГ» ГўГ®Г±ГјГ¬ГЁ ГўГҐГ°ГёГЁГ­ ГЇГ Г°Г Г«Г«ГҐГ«ГҐГЇГЁГЇГҐГ¤Г : Г­ГЁГ¦ ГЈГ°Г Г­Гј A B C D, ГўГҐГ°Гµ ГЈГ°Г Г­Гј A1 B1 C1 D1
+        //координаты восьми вершин параллелепипеда: ниж грань A B C D, верх грань A1 B1 C1 D1
         vec3 A = v_min;
         vec3 A1 = vec3(v_min[0], v_max[1], v_min[2]);
         vec3 B = vec3(v_max[0], v_min[1], v_min[2]);
@@ -145,22 +145,22 @@ public:
         vec3 D = vec3(v_min[0], v_min[1], v_max[2]);
         vec3 D1 = vec3(v_min[0], v_max[1], v_max[2]);
 
-        //Г®ГЎГµГ®Г¤ Г± Г­ГЁГ¦Г­ГҐГ© Г«ГҐГўГ®Г© ГІГ®Г·ГЄГЁ ГЇГ°Г®ГІГЁГў Г·Г Г±Г®ГўГ®Г©
-        int f1 = func(A, B, B1, A1, orig, dir, t1, N); 
+        //обход с нижней левой точки против часовой
+        int f1 = func(A, B, B1, A1, orig, dir, t1, N);
 
         int f2 = func(B, C, C1, B1, orig, dir, t1, N);
         int f3 = func(C, D, D1, C1, orig, dir, t1, N);
-        int f4 = func(D, A, A1, D1, orig, dir, t1, N); 
-        int f5 = func(A1, B1, C1, D1, orig, dir, t1, N); 
+        int f4 = func(D, A, A1, D1, orig, dir, t1, N);
+        int f5 = func(A1, B1, C1, D1, orig, dir, t1, N);
 
         //int f6 = func(A, B, C, D, orig, dir, t1, N);
         int f6 = func(D, C, B, A, orig, dir, t1, N);
 
         t0 = t1;
         hit = orig + dir * t0;
-        if (f1 * f2 * f3 * f4 * f5 * f6 == 0)//ГҐГ±ГІГј ГІГ®Г·ГЄГ  ГЇГҐГ°ГҐГ±ГҐГ· Г± ГЇГ Г°Г Г«Г«-Г¬
+        if (f1 * f2 * f3 * f4 * f5 * f6 == 0)//есть точка пересеч с паралл-м
             return true;
-        return false;//Г­ГҐГІ ГІГ®Г·ГЄГЁ ГЇГҐГ°ГҐГ±ГҐГ· Г± ГЇГ Г°Г Г«Г«-Г¬
+        return false;//нет точки пересеч с паралл-м
     }
     vec3 get_v_min()
     {
@@ -181,10 +181,10 @@ private:
     vec3 v4 = { 2.0, 0.0, 2.0 };
     int func(const vec3& A, const vec3& B, const vec3& C, const vec3& D, const vec3& orig, const vec3& dir, double& t1, vec3& N)
     {
-        double d = triangle_intersection(orig, dir, A, B, C); //Г°Г Г±Г±ГІГ®ГїГ­ГЁГҐ ГЇГ® Г«ГіГ·Гі Г¤Г® ГЇГҐГ°ГҐГ±ГҐГ· Г± ГІГ°ГҐГіГЈГ®Г«ГјГ­ГЁГЄГ®Г¬ ГЁГ«ГЁ 0
+        double d = triangle_intersection(orig, dir, A, B, C); //расстояние по лучу до пересеч с треугольником или 0
         if (d <= 0)
             return -1;
-        if (d > t1 && t1 > 0)//ГЅГІГ® Г¤Г Г«ГјГ­ГїГї ГІГ®Г·ГЄГ  ГЇГҐГ°ГҐГ±ГҐГ·
+        if (d > t1 && t1 > 0)//это дальняя точка пересеч
             return -1;
 
         auto n = cross(B - A, C - B).normalize();
@@ -192,23 +192,23 @@ private:
             n = n * (-1);
 
         if (n * dir > 0)
-            return -1; // Г­ГҐ ГўГЁГ¤ГЁГІ ГІГҐ ГІГ®Г·ГЄГЁ
+            return -1; // не видит те точки
 
         //n = n * (-1);
 
         N = n;
         t1 = d;
-        return 0;//Г­Г ГёГ«ГЁ ГІГ®Г·ГЄГі ГЇГҐГ°ГҐГ±ГҐГ· Г«ГіГ·Г  Г± ГІГ°ГҐГіГЈГ®Г«ГјГ­ГЁГЄГ®Г¬ ГЈГ°Г Г­ГЁ
+        return 0;//нашли точку пересеч луча с треугольником грани
     }
-    double triangle_intersection(const vec3& orig, const vec3 dir, const vec3& v0, const vec3& v1, const vec3& v2) //Г Г«ГЈ Г¬Г®Г«Г«ГҐГ°Г -ГІГ°
+    double triangle_intersection(const vec3& orig, const vec3 dir, const vec3& v0, const vec3& v1, const vec3& v2) //алг моллера-тр
     {
         vec3 e1 = v1 - v0;
         vec3 e2 = v2 - v0;
-        // Г‚Г»Г·ГЁГ±Г«ГҐГ­ГЁГҐ ГўГҐГЄГІГ®Г°Г  Г­Г®Г°Г¬Г Г«ГЁ ГЄ ГЇГ«Г®Г±ГЄГ®Г±ГІГЁ
+        // Вычисление вектора нормали к плоскости
         vec3 pvec = cross(dir, e2);
         double det = e1 * pvec;
 
-        // Г‹ГіГ· ГЇГ Г°Г Г«Г«ГҐГ«ГҐГ­ ГЇГ«Г®Г±ГЄГ®Г±ГІГЁ
+        // Луч параллелен плоскости
         if (det < 1e-8 && det > -1e-8)
         {
             return 0;
@@ -231,7 +231,7 @@ private:
 
 public:
     tetra() = default;
-    tetra(const string& type, const vec3& color, const vec3& v1, const vec3& v2, const vec3& v3, const vec3& v4) : shape(type, color)//ГЄГ®Г­Г±ГІГ°ГіГЄГІГ®Г°
+    tetra(const string& type, const vec3& color, const vec3& v1, const vec3& v2, const vec3& v3, const vec3& v4) : shape(type, color)//конструктор
     {
         this->v1 = v1; this->v2 = v2; this->v3 = v3; this->v4 = v4;
     }
@@ -241,7 +241,7 @@ public:
     {
         double t1 = -1;
 
-        
+
         int f1 = func(v1, v2, v3, v4, orig, dir, t1, N); //N = N * (-1);
         int f2 = func(v2, v3, v4, v1, orig, dir, t1, N);
         int f3 = func(v1, v4, v3, v2, orig, dir, t1, N);
@@ -251,7 +251,7 @@ public:
         hit = orig + dir * t0;
         if (f1 * f2 * f3 * f4 == 0)
             return true;
-        return false;//Г­ГҐГІ ГІГ®Г·ГЄГЁ ГЇГҐГ°ГҐГ±ГҐГ·
+        return false;//нет точки пересеч
     }
 
     vec3 get_v1()

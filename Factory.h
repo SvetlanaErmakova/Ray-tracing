@@ -21,9 +21,9 @@ public:
 		iss >> cent.x;
 		iss >> cent.y;
 		iss >> cent.z;
-		iss >>rad;
-		
-		return new sphere("sphere", col, cent, rad); 
+		iss >> rad;
+
+		return new sphere("sphere", col, cent, rad);
 	}
 };
 
@@ -52,7 +52,7 @@ public:
 	shape* create(const string& str) override
 	{
 		istringstream iss(str);
-		double num; vec3 col, v1, v2, v3, v4; 
+		double num; vec3 col, v1, v2, v3, v4;
 		iss >> col.x;
 		iss >> col.y;
 		iss >> col.z;

@@ -1,16 +1,16 @@
-п»ї#ifndef HM5_5
+#ifndef HM5_5
 #define HM5_5
 #include <chrono>
 #include "header.h"
 //
-const int BYTES_PER_PIXEL = 3; /// red, green,blue РєРѕР»РІРѕ Р±Р°Р№С‚РѕРІ РЅР° РїРёРєСЃРµР»СЊ
+const int BYTES_PER_PIXEL = 3; /// red, green,blue колво байтов на пиксель
 const int FILE_HEADER_SIZE = 14;
 const int INFO_HEADER_SIZE = 40;
 
-//РµСЃС‚СЊ Р»Рё С‚РѕС‡РєР° РїРµСЂРµСЃРµС‡РµРЅРёСЏ СЃ С„РёРіСѓСЂРѕР№
-//РІРµСЂРЅРµС‚ СЃР°РјСѓСЋ Р±Р»РёР¶РЅСЋСЋ С‚ РїРµСЂРµСЃРµС‡РµРЅРёСЏ Р»СѓС‡Р°(РёР· cam РїРѕ dir) СЃ С„РёРіСѓСЂР°РјРё, РµСЃР»Рё С‚ РїРµСЂРµСЃРµС‡ СЃ С„РёРіСѓСЂР°РјРё РµСЃС‚СЊ
-//РЅРѕСЂРјР°Р»СЊ Рє РїРѕРІРµСЂС…РЅРѕСЃС‚Рё РІ С‚РѕС‡РєРµ РїРµСЂРµСЃРµС‡ СЃ С„РёРіСѓСЂРѕР№, РµСЃР»Рё С‚ РїРµСЂРµСЃРµС‡ СЃ С„РёРіСѓСЂР°РјРё РµСЃС‚СЊ
-//СЃРѕРѕС‚РІРµС‚СЃС‚РІСѓСЋС‰РёР№ С†РІРµС‚ РґР»СЏ РїРёРєСЃРµР»СЏ, РµСЃР»Рё С‚ РїРµСЂРµСЃРµС‡ СЃ С„РёРіСѓСЂР°РјРё РµСЃС‚СЊ
+//есть ли точка пересечения с фигурой
+//вернет самую ближнюю т пересечения луча(из cam по dir) с фигурами, если т пересеч с фигурами есть
+//нормаль к поверхности в точке пересеч с фигурой, если т пересеч с фигурами есть
+//соответствующий цвет для пикселя, если т пересеч с фигурами есть
 bool Shapes_intersect(const Screen& scr, const vec3& dir, vector<shape*>& Shapes, vec3& hit, vec3& N, vec3& col)
 {
     vec3 hit_ = hit;
@@ -30,19 +30,19 @@ bool Shapes_intersect(const Screen& scr, const vec3& dir, vector<shape*>& Shapes
     return min_dist <= 1000;// scr.limit / (dir * ((-1) * scr.normal));
 }
 
-// С†РІРµС‚ РІ РєС‚ РЅР°РґРѕ РїРѕРєСЂР°СЃРёС‚СЊ РїРёРєСЃРµР»СЊ СѓС‡РёС‚С‹РІР°СЏ РёСЃС‚РѕС‡РЅРёРє СЃРІРµС‚Р°
+// цвет в кт надо покрасить пиксель учитывая источник света
 vec3 p_color(const Screen& scr, const vec3& dir, vector<shape*>& Shapes, const Light& light)
 {
     vec3 point, N, col;
     if (Shapes_intersect(scr, dir, Shapes, point, N, col) == false)
     {
-        return vec3(250, 218, 221); //С„РѕРЅ
+        return vec3(250, 218, 221); //фон
     }
 
     double diffuse_light_intensity = 0;
     vec3 light_dir = (light.position - point).normalize();
     diffuse_light_intensity = light.intensity * std::max(0.0, double(light_dir * N));
-    
+
     return col * diffuse_light_intensity;
 
 }
@@ -107,7 +107,19 @@ void generateBitmapImage(const unsigned char* image, int height, int width, char
 
     int stride = (widthInBytes)+paddingSize;
 
-    FILE* imageFile = fopen(imageFileName, "wb");
+    //FILE* imageFile = fopen(imageFileName, "wb");
+    FILE* imageFile;
+    errno_t err;
+    err = fopen_s(&imageFile, imageFileName, "wb");
+    //if (err == 0)
+    //{
+    //    printf("The file 'crt_fopen_s.c' was opened\n");
+    //}
+    //else
+    //{
+    //    printf("The file 'crt_fopen_s.c' was not opened\n");
+    //}
+
 
     unsigned char* fileHeader = createBitmapFileHeader(height, stride);
     fwrite(fileHeader, 1, FILE_HEADER_SIZE, imageFile);
@@ -123,7 +135,7 @@ void generateBitmapImage(const unsigned char* image, int height, int width, char
 
     fclose(imageFile);
 }
-class FrameBuffer 
+class FrameBuffer
 {
     std::vector<unsigned char> data;
     int width;
@@ -134,16 +146,16 @@ public:
     const unsigned char* ptr() const {
         return data.data();
     }
-    
+
     unsigned char& operator()(int i, int j, int plane) {
-        return data[(i  + j * width) * 3 + plane];
+        return data[(i + j * width) * 3 + plane];
     }
 
 };
 void create_img(vector<shape*>& Shapes, Light& light, const Screen& scr)
 {
     const int height = scr.height;
-    const int width =  scr.width;
+    const int width = scr.width;
     vec3 te = scr.normal;
     vec3 t = te.normalize();
     vec3 up = scr.up;
@@ -160,13 +172,13 @@ void create_img(vector<shape*>& Shapes, Light& light, const Screen& scr)
     FrameBuffer image(width, height);
 
     auto start_for = std::chrono::steady_clock::now();
-    #pragma omp parallel for
+#pragma omp parallel for
     for (int j = 0; j < height; j++) {
         for (int i = 0; i < width; i++) {
 
             double dir_[3];
             for (int k = 0; k < 3; k++) {
-                dir_[k] = t[k] * d - w * f[k] - h * a[k] + (i * 2 * w) * f[k] / (width - 1) + ((height - j) * 2 * h) *a[k] / (height - 1);
+                dir_[k] = t[k] * d - w * f[k] - h * a[k] + (i * 2 * w) * f[k] / (width - 1) + ((height - j) * 2 * h) * a[k] / (height - 1);
             }
             vec3 dir = vec3(dir_[0], dir_[1], dir_[2]).normalize();
 
@@ -180,11 +192,11 @@ void create_img(vector<shape*>& Shapes, Light& light, const Screen& scr)
     char* FileName = (char*)"rez.bmp";
 
     int i, j;
-    for (j = 0; j < height; j++)  
-    {                            
+    for (j = 0; j < height; j++)
+    {
         for (i = 0; i < width; i++)
         {
-            image(i,j,2) = pixels[i + j * width][2]; ///red
+            image(i, j, 2) = pixels[i + j * width][2]; ///red
             image(i, j, 1) = pixels[i + j * width][1]; ///green
             image(i, j, 0) = pixels[i + j * width][0]; ///blue
         }
@@ -288,7 +300,7 @@ int main()
         inp1.close();
         //
         Light light_ = { light, 1.0 };
-        Screen scr = {cam, normal.normalize(), up, screen, limit, alpha, width, height };
+        Screen scr = { cam, normal.normalize(), up, screen, limit, alpha, width, height };
 
         //Shapes.push_back(new sphere("sp", vec3(186, 85, 211), vec3(-3, 0, -16), 2.0));
         //Shapes.push_back(new sphere("sp", vec3(221, 160, 221), vec3(0, 10, -50), 2.0));

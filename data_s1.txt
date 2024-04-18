@@ -1,4 +1,4 @@
-cam 0 0 50
+cam 0 0 40
 normal 0 0 -1
 up 0 1 0
 screen 2
